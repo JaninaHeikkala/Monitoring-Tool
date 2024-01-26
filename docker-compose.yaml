@@ -1,0 +1,22 @@
+services:
+  update:
+    build: ./backend/
+    command: python3 update.py
+    restart: always
+  mongo:
+    image: mongo
+    volumes:
+      - monitoring-tool:/mongo/db
+    ports:
+      - "27017:27017"
+  web:
+    build: ./backend/
+    command: python3 main.py
+    restart: always
+    volumes:
+      - monitoring-tool:/mongo/db
+    ports:
+      - "8000:8000"
+
+volumes:
+  monitoring-tool:
