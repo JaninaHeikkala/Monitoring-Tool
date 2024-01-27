@@ -1,6 +1,5 @@
 <template>
     <div>
-      <h1>Data from MongoDB</h1>
       <div v-for="(item, index) in accordionItems" :key="index" class="accordion">
         <div @click="toggleAccordion(index)" class="accordion-header">
           <div>{{ item.site }}</div>

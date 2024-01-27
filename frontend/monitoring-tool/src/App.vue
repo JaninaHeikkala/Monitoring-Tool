@@ -1,5 +1,5 @@
 <template>
-  <h1>HEY</h1>
+  <h1>Downtime checker project</h1>
   <FetchData/>
 </template>
 
