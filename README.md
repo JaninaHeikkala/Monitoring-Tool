@@ -1,8 +1,11 @@
 # Monitoring-Tool
 
+Simple monitoring-tool to monitor whether sites are down
+Uses fastAPI, MongoDB and Vue
+
 # How to run
 
-Backend
+## Backend
 
 You need docker to run the backend & database
 
@@ -10,7 +13,7 @@ You need docker to run the backend & database
 docker compose up --build
 ```
 
-Frontend
+## Frontend
 
 ```bash
 npm run serve
