@@ -5,15 +5,30 @@ import uvicorn
 import httpx
 from fastapi import FastAPI, HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
+from bson.json_util import dumps
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from update import fetch_and_store_data_for_all_sites
 
 app = FastAPI()
 
 
 # MongoDB Connection
 DATABASE_URL = "mongodb://mongo:27017"
-client = AsyncIOMotorClient(DATABASE_URL)
-db = client["monitoring-toool"]
+client = MongoClient(DATABASE_URL)
+db = client["monitoring-tool"]
 collection = db["data"]
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this to your frontend's URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # External API base URL
@@ -57,7 +72,33 @@ async def fetch_store_site(site_name: str):
         raise HTTPException(status_code=500, detail=f"Error fetching data from {external_api_url}: {str(e)}")
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"HTTP error from {external_api_url}: {str(e)}")
+    
+async def get_mongo_collection():
+    return collection
 
-loop = asyncio.get_event_loop()
+@app.get("/fetch_data_from_db")
+async def fetch_data_from_db():
+    collection = await get_mongo_collection()
 
-uvicorn.run(app, host="127.0.0.1", port=8000, use_colors=False)
+    # Fetch data from the MongoDB collection
+    data = collection.find()
+    data_json = dumps(data)  # Convert the cursor to JSON format
+
+    return {"data_from_mongo": data_json}
+
+@app.get("/fetch_newest")
+async def fetch_newest():
+    try:
+        all_data = fetch_and_store_data_for_all_sites()
+        # Exclude ObjectId from serialization
+        serialized_data = [
+            {key: value for key, value in item.items() if key != "_id"}
+            for item in all_data
+        ]
+        return JSONResponse(content={"all_data": serialized_data})
+    except Exception as e:
+        # Catch any exception and return details in the response
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+uvicorn.run(app, host="0.0.0.0", port=8000, use_colors=False)

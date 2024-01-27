@@ -13,8 +13,6 @@ services:
     build: ./backend/
     command: python3 main.py
     restart: always
-    volumes:
-      - monitoring-tool:/mongo/db
     ports:
       - "8000:8000"
 
